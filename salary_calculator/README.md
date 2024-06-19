@@ -20,7 +20,7 @@ Before running this program, ensure that you have the following installed on you
 ## Compile
 
 ```bash
-gcc -o salary_calculator salary_calculator.c -lcurl
+make build
 ```
 
 ## Usage
