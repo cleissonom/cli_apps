@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+const char *BLUE = "\033[1;34m";
+const char *YELLOW = "\033[1;33m";
+const char *GREEN = "\033[1;32m";
+
 struct MemoryStruct {
   char *memory;
   size_t size;
@@ -118,11 +122,12 @@ int main(int argc, char *argv[]) {
   }
   double total_earned_brl = total_earned_usd * exchange_rate;
 
-  printf("\033[1;34mTotal hours worked:\033[0m %.2f hours\n",
+  printf("%sTotal hours worked:\033[0m %.2f hours\n", BLUE,
          (double)hours + (minutes / 60.0) + (seconds / 3600.0));
-  printf("\033[1;33mDollar exchange rate:\033[0m R$%.2f\n", exchange_rate);
-  printf("\033[1;33mTotal earned in dollars:\033[0m $%.2f\n", total_earned_usd);
-  printf("\033[1;32mTotal earned in reais:\033[0m R$%.2f\n", total_earned_brl);
+  printf("%sHourly wage:\033[0m $%.2f\n", BLUE, hourly_rate);
+  printf("%sDollar exchange rate:\033[0m R$%.2f\n", YELLOW, exchange_rate);
+  printf("%sTotal earned in dollars:\033[0m $%.2f\n", YELLOW, total_earned_usd);
+  printf("%sTotal earned in reais:\033[0m R$%.2f\n", GREEN, total_earned_brl);
 
   return 0;
 }
