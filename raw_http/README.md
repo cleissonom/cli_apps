@@ -2,7 +2,7 @@
 
 ## Overview
 
-This C program leverages the power of libcurl to send raw HTTP requests configured from a `.txt` file. It supports GET and POST methods and saves the complete response, including headers and body, to a specified output file.
+This C program leverages the power of libcurl to send raw HTTP requests configured from a `.txt` file. It supports GET, POST, PUT, DELETE, PATCH, OPTIONS, and HEAD methods and saves the complete response, including headers and body, to a specified output file.
 
 ## Features
 
