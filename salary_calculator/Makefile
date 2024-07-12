@@ -2,4 +2,4 @@ COMPILER = gcc
 CFLAGS = -lcurl
 
 build: 
-	$(COMPILER) $(CFLAGS) -o salary_calculator salary_calculator.c
+	@$(COMPILER) $(CFLAGS) -o salary_calculator salary_calculator.c

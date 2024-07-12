@@ -33,14 +33,14 @@ for dir in "$PWD"/*; do
 
             if [ "$SKIP_CONFIRMATION" = true ]; then
                 sudo cp "$executable_path" "$LOCAL_PATH"
-                echo "Copied $executable_path to $LOCAL_PATH"
+                echo "Copied $executable_path to $LOCAL_PATH/$base_name"
             else
                 read -p "Are you sure you want to copy $executable_path to $LOCAL_PATH? (y/n) " -n 1 -r
                 echo    # move to a new line
                 if [[ $REPLY =~ ^[Yy]$ ]]
                 then
                     sudo cp "$executable_path" "$LOCAL_PATH"
-                    echo "Copied $executable_path to $LOCAL_PATH"
+                    echo "Copied $executable_path to $LOCAL_PATH/$base_name"
                 else
                     echo "Skipping $executable_path..."
                 fi
@@ -52,3 +52,4 @@ for dir in "$PWD"/*; do
 done
 
 echo -e "\033[1;32mDone!\033[0m"
+echo 

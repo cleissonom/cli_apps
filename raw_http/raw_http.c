@@ -23,8 +23,9 @@ typedef struct
 
 void parse_line(char *line, HttpRequest *request)
 {
-  if (strstr(line, "GET") == line || strstr(line, "POST") == line || strstr(line, "PUT") == line ||
-      strstr(line, "DELETE") == line || strstr(line, "PATCH") == line || strstr(line, "OPTIONS") == line ||
+  if (strstr(line, "GET") == line || strstr(line, "POST") == line ||
+      strstr(line, "PUT") == line || strstr(line, "DELETE") == line ||
+      strstr(line, "PATCH") == line || strstr(line, "OPTIONS") == line ||
       strstr(line, "HEAD") == line)
   {
     sscanf(line, "%s %s %s", request->method, request->path, request->version);
@@ -33,7 +34,9 @@ void parse_line(char *line, HttpRequest *request)
   {
     sscanf(line, "Host: %s", request->host);
   }
-  else if (strstr(line, "Content-Length:") == line || strstr(line, "Content-Type:") == line || strstr(line, "User-Agent:") == line)
+  else if (strstr(line, "Content-Length:") == line ||
+           strstr(line, "Content-Type:") == line ||
+           strstr(line, "User-Agent:") == line)
   {
     strcat(request->headers, line);
     strcat(request->headers, "\r\n");
@@ -45,7 +48,24 @@ void parse_line(char *line, HttpRequest *request)
   }
 }
 
-size_t header_callback(void *ptr, size_t size, size_t nmemb, HttpResponse *response)
+struct curl_slist *configure_http_headers(HttpRequest *request)
+{
+  struct curl_slist *headers = NULL;
+  char header_buffer[4096];
+  strcpy(header_buffer, request->headers);
+
+  char *header_line = strtok(header_buffer, "\r\n");
+  while (header_line != NULL)
+  {
+    headers = curl_slist_append(headers, header_line);
+    header_line = strtok(NULL, "\r\n");
+  }
+
+  return headers;
+}
+
+size_t header_callback(void *ptr, size_t size, size_t nmemb,
+                       HttpResponse *response)
 {
   size_t new_len = response->headers_size + size * nmemb;
   response->headers = realloc(response->headers, new_len + 1);
@@ -79,7 +99,9 @@ int main(int argc, char *argv[])
 {
   if (argc != 3)
   {
-    fprintf(stderr, "\033[1;31mUsage: %s <input_file.txt> <output_file.txt>\033[0m\n", argv[0]);
+    fprintf(stderr,
+            "\033[1;31mUsage: %s <input_file.txt> <output_file.txt>\033[0m\n",
+            argv[0]);
     return 1;
   }
 
@@ -90,7 +112,8 @@ int main(int argc, char *argv[])
 
   if (!input_file)
   {
-    fprintf(stderr, "\033[1;31mError: Could not open file %s\033[0m\n", input_filename);
+    fprintf(stderr, "\033[1;31mError: Could not open file %s\033[0m\n",
+            input_filename);
     return 1;
   }
 
@@ -117,14 +140,17 @@ int main(int argc, char *argv[])
   free(line);
   fclose(input_file);
 
-  if (strlen(request.method) == 0 || strlen(request.path) == 0 || strlen(request.version) == 0 || strlen(request.host) == 0)
+  if (strlen(request.method) == 0 || strlen(request.path) == 0 ||
+      strlen(request.version) == 0 || strlen(request.host) == 0)
   {
-    fprintf(stderr, "\033[1;31mError: Missing required fields (Method, Path, HTTP version, or Host)\033[0m\n");
+    fprintf(stderr, "\033[1;31mError: Missing required fields (Method, "
+                    "Path, HTTP version, or Host)\033[0m\n");
     curl_easy_cleanup(curl);
     return 1;
   }
 
-  if (strncmp(request.host, "http://", 7) != 0 && strncmp(request.host, "https://", 8) != 0)
+  if (strncmp(request.host, "http://", 7) != 0 &&
+      strncmp(request.host, "https://", 8) != 0)
   {
     char temp_host[1024];
     snprintf(temp_host, sizeof(temp_host), "http://%s", request.host);
@@ -134,20 +160,9 @@ int main(int argc, char *argv[])
 
   char url[2048];
   snprintf(url, sizeof(url), "%s%s", request.host, request.path);
-
   curl_easy_setopt(curl, CURLOPT_URL, url);
 
-  struct curl_slist *headers = NULL;
-  char header_buffer[4096];
-  strcpy(header_buffer, request.headers);
-
-  char *header_line = strtok(header_buffer, "\r\n");
-  while (header_line != NULL)
-  {
-    headers = curl_slist_append(headers, header_line);
-    header_line = strtok(NULL, "\r\n");
-  }
-
+  struct curl_slist *headers = configure_http_headers(&request);
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
   if (strcmp(request.method, "POST") == 0)
@@ -155,12 +170,14 @@ int main(int argc, char *argv[])
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request.body);
   }
-  else if (strcmp(request.method, "PUT") == 0 || strcmp(request.method, "PATCH") == 0)
+  else if (strcmp(request.method, "PUT") == 0 ||
+           strcmp(request.method, "PATCH") == 0)
   {
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, request.method);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request.body);
   }
-  else if (strcmp(request.method, "DELETE") == 0 || strcmp(request.method, "OPTIONS") == 0)
+  else if (strcmp(request.method, "DELETE") == 0 ||
+           strcmp(request.method, "OPTIONS") == 0)
   {
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
   }
@@ -196,7 +213,8 @@ int main(int argc, char *argv[])
     }
     else
     {
-      fprintf(stderr, "\033[1;31mError: Could not open output file %s\033[0m\n", output_filename);
+      fprintf(stderr, "\033[1;31mError: Could not open output file %s\033[0m\n",
+              output_filename);
     }
   }
 
@@ -204,6 +222,8 @@ int main(int argc, char *argv[])
   free(response.body);
   curl_slist_free_all(headers);
   curl_easy_cleanup(curl);
+
+  printf("\033[1;32mRequest completed successfully!\033[0m\n");
 
   return 0;
 }
